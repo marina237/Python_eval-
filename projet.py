@@ -15,10 +15,25 @@ status2str = {"attente": "en attente", "transit": "en transit"}
 
 
 class colis:
-    def __init__(self, num_commande):
-
+    def __init__(self, num_commande, type_):
         self.num_commande = num_commande
-        self.status = "attente"
+        self.status = "new"
+        self.type = None
+        print(f"creating {type_} colis")
+        if type_ == "medium":
+            weight, duration = 5, 5
+        elif type_ == "large":
+            weight, duration = 5, 10
+        elif type_ == "extra_large":
+            weight, duration = 7, 15
+        else:
+            self.type = False
+            print(f"Error {type_} is unknown")
+        if self.type is None:
+            self.type = type_
+
+    def __bool__(self):
+        return bool(self.type)
 
     def en_transit(self):
         self.status = "transit"
@@ -106,7 +121,7 @@ def livraison(camion):
     for colis in camion["colis"]:
         time.sleep(camion["time_per_gift"] * tf)
 
-    print(f"Shipped  {len(camion['colis'])}")
+    pri(f"Shipped  {len(camion['colis'])}")
     camion["colis"] = []
 
 
@@ -176,10 +191,22 @@ import unittest
 
 class Tests(unittest.TestCase):
     def test_type_de_colis(self):
-        moyen = type_de_colis("medium")
+        mauvais = type_de_colis("deedwedw")
+        moyen = colis(0000, "medium")
         self.assertEqual(
-            moyen, {"type ": "medium", "status": "new", "duration": 5, "weight": 5}
+            moyen.__dict__,
+            {
+                "type ": "medium",
+                "num_commande": 0,
+                "status": "new",
+                "duration": 5,
+                "weight": 5,
+            },
         )
+
+    def test_objectify_colis(self):
+        mauvais = colis(123, "deedwedw")
+        self.assertFalse(mauvais)
 
     def test_wrap_colis(self):
         colis = type_de_colis("medium")
