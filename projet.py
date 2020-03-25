@@ -8,192 +8,133 @@ Created on Tue Mar 17 13:49:59 2020
 import time
 import random
 
-  
-    #Information sur le colis
-class colis():
-    
-        def __init__(self, num_commande):
-    
-            self.num_commande = num_commande
-        
-        def en_transit(self):
-            print(f"Le colis numéro {self.num_commande} est en transit.")
-    
-    
-mon_colis = colis(random.randint(1,10000))
-mon_colis.en_transit()
-    
-    
-    
-def type_de_colis(type):
+tf = 0.0001
+status2str = {"attente": "en attente", "transit": "en transit"}
 
-    print(f"creating {type} colis")
-
-    if type == "medium":
-
-        weight = int(5)
-
-        duration = int(5)
-
-        return {"type ": type, "duration": duration, "weight": weight}
-
-    elif type == "large":
-
-        weight =int(5)
-
-        duration = int(10)
-
-        return {"type": type, "duration": duration, "weight": weight}
+# Information sur le colis
 
 
+class colis:
+    def __init__(self, num_commande):
 
-    elif type == "extra large":
+        self.num_commande = num_commande
+        self.status = "attente"
 
-        weight = int(7)
+    def en_transit(self):
+        self.status = "transit"
 
-        duration = int(15)
+    def __str__(self):
+        return f"Le colis numéro {self.num_commande} est {status2str[self.status]}"
 
-        return {"type ": type, "duration": duration, "weight": weight}
 
+class camion:
+    def __init__(self, imat="12344"):
+        self.imat = imat
+        self.colis = []
+
+    def __str__(self):
+        return (
+            f"Le camion immatricule {self.imat} contient"
+            f"{' ,'.join( '%s' %  colis.num_commande for colis in self.colis)}"
+        )
+
+
+if __name__ == "__main__":
+    mon_colis = colis(random.randint(1, 10000))
+    print(mon_colis)
+    mon_colis.en_transit()
+    print(mon_colis)
+    camion = camion()
+    camion.colis.append(mon_colis)
+    print(camion)
+
+
+def type_de_colis(type_):
+
+    print(f"creating {type_} colis")
+    if type_ == "medium":
+        weight, duration = 5, 5
+    elif type_ == "large":
+        weight, duration = 5, 10
+    elif type_ == "extra_large":
+        weight, duration = 7, 15
     else:
-        print(f"Error {type} is unknown")
+        print(f"Error {type_} is unknown")
+        return {}
+    return {"type ": type_, "duration": duration, "weight": weight, "status": "new"}
 
 
 def types(type):
-
     for type in types:
-
         t = time.time()
-
         yield type_de_colis(type)
-
         print(f"time taken for creating gift {time.time() - t:.4f}")
 
     # return [ for kind in kinds]
 
 
-
-
-
-
 def wrap_colis(colis):
+    sleep_time = 0
     print("Starting to wrap")
-
-    time.sleep(2)
-
-    #print("Wrapped a % s colis"  % kind["kind"] )
-    print("Wrapped a %s colis" %colis)
-    
-    
-    
-
-      
+    time.sleep(sleep_time * tf)
+    print(f"Wrapped {colis}")
+    colis["status"] = "wrapped"
 
 
-def compute_free_load(camion,colis):
-   
-   return camion["max_load"] - sum(colis["weight"] for colis in camion["colis"])
+def compute_free_load(camion):
+    return camion["max_load"] - sum(colis["weight"] for colis in camion["colis"])
 
 
+def camion_load(camion):
+    return sum(colis["weight"] for colis in camion["colis"])
 
 
+def take_parcel(camion, colis):
 
-def camion_load(cam):
-   return sum(colis["weight"] for colis in cam["colis"])
-
-
-
-
-
-def take_gift(camion):
-
-    if camion["colis"][1]["weight"] <= compute_free_load(camion,colis):
-
-       camion['colis'].append(camion)
-       print("Le colis peut être mis dans le camion !")
-
-       return 1
-      
-
+    if colis["weight"] <= compute_free_load(camion):
+        camion["colis"].append(colis)
+        print("Le colis peut être mis dans le camion !")
     else:
         print("Le colis ne peut pas être mis dans le camion !")
-        return 0
-
-
-
-
-# Tiends mais il faudrait qu'on puisse savoir si le cadeau a été pris
-
-# Soit a la valeur de return
-
-#  (exception)
-
-
-
+    return colis in camion["colis"]
 
 
 def livraison(camion):
-
     print(f"Shipping {len(camion['colis'])}")
-
     print(f"{camion_load(camion)} kg to be shipped")
 
-
-
     for colis in camion["colis"]:
-
-        time.sleep(camion["time_per_gift"])
+        time.sleep(camion["time_per_gift"] * tf)
 
     print(f"Shipped  {len(camion['colis'])}")
-
     camion["colis"] = []
 
 
-
-
-
-def process_gifts(camion):
-
-    for colis in camion:
-
+def process_gifts(camion, parcels2ship):
+    for colis in parcels2ship:
         wrap_colis(colis)
-
-        taken = take_gift(camion)
-
-        if taken == 1:
-
+        taken = take_parcel(camion)
+        if taken:
             print(f"current load {camion_load(camion)}")
-
             continue
-
         else:
-
             livraison(camion)
-
-            taken = take_gift(camion, colis)
-
-            if taken == 0:
-
+            taken = take_parcel(camion, colis)
+            if not taken:
                 print("Error, sledge should take the gift after shipping")
-
     else:
-
-       livraison(camion)
-       
-       
-
-
+        livraison(camion)
 
 
 def create_and_process(gift_types):
 
     process_gifts(type_de_colis(gift_types))
 
+
+"""
 if __name__ == "__main__":
 
     import sys
-
-
 
     if len(sys.argv) == 2:
 
@@ -203,56 +144,54 @@ if __name__ == "__main__":
 
         n_colis = 5
 
+
+if __name__ == '__main__':
     from random import choices
-
-
-
     colis_types = choices(["medium", "large", "extra large"], k=n_colis)
-
-    
-
-li=[]
-for i in range(4) :
-    
-    li.append(type_de_colis(colis_types[i]))
-    print(li)
-    
+    li = []
+    for i in range(4):
+        li.append(type_de_colis(colis_types[i]))
+        print(li)
 
 
-camion = {"colis":li, "max_load": 100, "time_per_gift": 5}
+    camion = {"colis": li, "max_load": 100, "time_per_gift": 5}
 
 
+    print("la charge disponible est de ", compute_free_load(camion, li), "kg")
 
 
-
-
-
-print("la charge disponible est de ",compute_free_load(camion,li),"kg")
-
- 
-print(take_gift(camion))
+    print(take_parcel(camion))
 
 import sys
-import pygame as pg   
-ship =pg.image.load('C:/Users/mary-/Documents/stid2/S4/Pyhton Avancée/La poste.jpg')
+#import pygame as pg
 
-#Test
+#ship = pg.image.load("C:/Users/mary-/Documents/stid2/S4/Pyhton Avancée/La poste.jpg")
+# à mettre dans vos dépots
+
+# Test a mettre dans le fichier de test
+"""
 
 import unittest
 
+
 class Tests(unittest.TestCase):
-
     def test_type_de_colis(self):
-        self.assertEqual(type_de_colis("medium"), {'type ': 'medium', 'duration': 5, 'weight': 5})
-
+        self.assertEqual(
+            type_de_colis("medium"), {"type ": "medium", "duration": 5, "weight": 5}
+        )
 
     def test_wrap_colis(self):
-        self.assertEqual(wrap_colis(colis), 2)
+        colis = type_de_colis("medium")
+        self.assertEqual(colis["status"], "new")
+        wrap_colis(colis)
+        self.assertEqual(colis["status"], "wrapped")
+
+    def test_take_parcel(self):
+
+        camion = {"colis": [], "max_load": 100, "time_per_gift": 5}
+        colis = type_de_colis("medium")
+        self.assertTrue(take_parcel(camion, colis))
 
 
-    def test_take_gift(self):
-        self.assertEqual(take_gift(camion), 10)
-         
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
