@@ -177,8 +177,9 @@ import unittest
 class Tests(unittest.TestCase):
     def test_type_de_colis(self):
         moyen = type_de_colis("medium")
-        moyen.pop("status")
-        self.assertEqual(moyen, {"type ": "medium", "duration": 5, "weight": 5})
+        self.assertEqual(
+            moyen, {"type ": "medium", "status": "new", "duration": 5, "weight": 5}
+        )
 
     def test_wrap_colis(self):
         colis = type_de_colis("medium")
