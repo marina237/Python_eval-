@@ -91,7 +91,7 @@ class Mot:
         
         
 mot = Mot('Bonjour')           
-mot.comptelettre('o')
+
 
 
 
