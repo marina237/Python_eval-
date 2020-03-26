@@ -68,7 +68,7 @@ class Mot:
         self.mot = mot
 
     def comptelettre(self, lettre):
-        return self.mot.count(lettre)
+        return self.mot.upper().count(lettre.upper())
 
 
 mot = Mot("Bonjour")
